@@ -9,7 +9,10 @@ import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.wm.ToolWindowManager
@@ -78,6 +81,7 @@ class JitRunConfigurationExtension : RunConfigurationExtension() {
             vmOptions.add("-XX:+LogCompilation")
             vmOptions.add("-XX:LogFile=" + logPath.absolutePath)
             settings.lastLogPath = logPath
+            LOG.info("Enabled JIT compilation logging to '${logPath.absolutePath}'")
         }
     }
 
@@ -85,13 +89,17 @@ class JitRunConfigurationExtension : RunConfigurationExtension() {
         val logPath = JitWatchSettings.getOrCreate(configuration).lastLogPath
         if (logPath != null) {
             handler.addProcessListener(object : ProcessAdapter() {
-                override fun processTerminated(event: ProcessEvent?) {
+                override fun processTerminated(event: ProcessEvent) {
                     ApplicationManager.getApplication().invokeLater {
                         loadLogAndShowUI(configuration.project, logPath)
                     }
                 }
             })
         }
+    }
+
+    companion object {
+        val LOG = Logger.getInstance(JitRunConfigurationExtension::class.java)
     }
 }
 

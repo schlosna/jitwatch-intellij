@@ -18,7 +18,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.containers.isNullOrEmpty
-import com.intellij.util.isFile
+import com.intellij.util.io.isFile
 import org.adoptopenjdk.jitwatch.core.HotSpotLogParser
 import org.adoptopenjdk.jitwatch.core.IJITListener
 import org.adoptopenjdk.jitwatch.core.ILogParseErrorListener
@@ -81,7 +81,8 @@ class JitWatchModelService(private val project: Project) {
         val parseErrors = mutableListOf<Pair<String, String>>()
         val errorListener = ILogParseErrorListener { title, body -> parseErrors.add(title to body) }
 
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Loading compilation log", false) {
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project,
+                "Loading compilation log: " + logFile.absolutePath, false) {
             override fun run(indicator: ProgressIndicator) {
                 val parser = HotSpotLogParser(jitListener)
                 parser.config = config
@@ -160,7 +161,7 @@ class JitWatchModelService(private val project: Project) {
     }
 
     fun loadBytecode(file: PsiFile) {
-        val module = ModuleUtil.findModuleForPsiElement(file) ?: return
+        val module = ApplicationManager.getApplication().runReadAction(Computable { ModuleUtil.findModuleForPsiElement(file) }) ?: return
         val outputRoots = CompilerModuleExtension.getInstance(module)!!.getOutputRoots(true)
                 .map { it.canonicalPath }
         val javapPath = findJavapPath(module)

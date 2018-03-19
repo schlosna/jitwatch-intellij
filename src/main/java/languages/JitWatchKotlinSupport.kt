@@ -4,7 +4,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.util.PsiTreeUtil
 import org.adoptopenjdk.jitwatch.model.MemberSignatureParts
 import org.adoptopenjdk.jitwatch.model.MetaClass
@@ -15,9 +17,8 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.fileClasses.NoResolveFileClassesProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.load.java.JvmAbi
@@ -52,13 +53,13 @@ class JitWatchKotlinSupport : JitWatchLanguageSupport<KtClassOrObject, KtCallabl
     }
 
     override fun getClassVMName(cls: KtClassOrObject): String? {
-        val descriptor = cls.resolveToDescriptor() as? ClassDescriptor ?: return null
+        val descriptor = cls.resolveToDescriptorIfAny() as? ClassDescriptor ?: return null
         return getClassDescriptorVMName(descriptor)
     }
 
     private fun getClassDescriptorVMName(descriptor: ClassDescriptor): String {
-        val typeMapper = KotlinTypeMapper(BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES, NoResolveFileClassesProvider, null,
-                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME)
+        val typeMapper = KotlinTypeMapper(BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES,
+                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME, true, true)
         return typeMapper.mapClass(descriptor).internalName.replace('/', '.')
     }
 
@@ -68,13 +69,13 @@ class JitWatchKotlinSupport : JitWatchLanguageSupport<KtClassOrObject, KtCallabl
                                   memberName: String,
                                   paramTypeNames: List<String>,
                                   returnTypeName: String): Boolean {
-        val descriptor = method.resolveToDescriptor() as? FunctionDescriptor ?: return false
+        val descriptor = method.resolveToDescriptorIfAny() as? FunctionDescriptor ?: return false
         return matchesSignature(descriptor, memberName, paramTypeNames, returnTypeName)
     }
 
     private fun matchesSignature(descriptor: FunctionDescriptor, memberName: String, paramTypeNames: List<String>, returnTypeName: String): Boolean {
-        val typeMapper = KotlinTypeMapper(BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES, NoResolveFileClassesProvider, null,
-                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME)
+        val typeMapper = KotlinTypeMapper(BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES,
+                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME, true, true)
         val signature = typeMapper.mapAsmMethod(descriptor)
 
         val expectedName = if (descriptor is ConstructorDescriptor)
@@ -113,7 +114,8 @@ class JitWatchKotlinSupport : JitWatchLanguageSupport<KtClassOrObject, KtCallabl
         var result: PsiElement? = null
         processCalls(file, offset) { expression, resultingDescriptor ->
             val target = resultingDescriptor as? ConstructorDescriptor ?: return@processCalls
-            val createdClass = getClassDescriptorVMName(target.containingDeclaration)
+            val descriptor = target.containingDeclaration
+            val createdClass = getClassDescriptorVMName(descriptor as ClassDescriptor)
             if (createdClass == jvmName) {
                 result = expression.calleeExpression
             }
