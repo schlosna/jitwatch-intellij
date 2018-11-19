@@ -140,18 +140,14 @@ class JitToolWindow(private val project: Project) : JPanel(CardLayout()), Dispos
             bytecodeTextBuilder!!.appendClass(metaClass)
         }
 
-        object : WriteCommandAction<Unit>(project) {
-            override fun run(result: Result<Unit>) {
-                movingCaretInBytecode = true
-                try {
-                    bytecodeDocument.replaceString(0, bytecodeDocument.textLength, bytecodeTextBuilder!!.text)
-                }
-                finally {
-                    movingCaretInBytecode = false
-                }
+        WriteCommandAction.runWriteCommandAction(project) {
+            movingCaretInBytecode = true
+            try {
+                bytecodeDocument.replaceString(0, bytecodeDocument.textLength, bytecodeTextBuilder!!.text)
+            } finally {
+                movingCaretInBytecode = false
             }
-        }.execute()
-
+        }
         renderBytecodeAnnotations(psiFile)
     }
 

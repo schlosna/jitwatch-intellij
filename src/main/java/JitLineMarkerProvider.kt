@@ -29,7 +29,7 @@ class JitLineMarkerProvider : LineMarkerProvider {
                 LanguageSupport.forElement(element).getNameRange(element),
                 AllIcons.Actions.Suspend,
                 Pass.UPDATE_ALL,
-                { method -> "Not compiled"}, null, GutterIconRenderer.Alignment.CENTER)
+                { "Not compiled"}, null, GutterIconRenderer.Alignment.CENTER)
     }
 
     private fun metaMemberMarker(method: PsiElement, metaMember: IMetaMember): LineMarkerInfo<*> {
@@ -39,8 +39,8 @@ class JitLineMarkerProvider : LineMarkerProvider {
                 LanguageSupport.forElement(method).getNameRange(method),
                 icon,
                 Pass.UPDATE_ALL,
-                { method -> buildCompiledTooltip(metaMember) },
-                { e, elt ->
+                { buildCompiledTooltip(metaMember) },
+                { _, elt ->
                     JitToolWindow.getToolWindow(method.project)?.activate {
                         JitToolWindow.getInstance(method.project)?.navigateToMember(elt)
                     }

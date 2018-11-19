@@ -6,6 +6,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -82,7 +83,7 @@ class JitWatchModelService(private val project: Project) {
         val errorListener = ILogParseErrorListener { title, body -> parseErrors.add(title to body) }
 
         ProgressManager.getInstance().run(object : Task.Backgroundable(project,
-                "Loading compilation log: " + logFile.absolutePath, false) {
+                "Loading compilation log: " + logFile.absolutePath, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
             override fun run(indicator: ProgressIndicator) {
                 val parser = HotSpotLogParser(jitListener)
                 parser.config = config

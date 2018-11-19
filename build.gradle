@@ -41,6 +41,7 @@ intellij {
     pluginName 'JITWatch'
     version idea_version
     downloadSources false
+    plugins 'kotlin'
 
     // https://plugins.jetbrains.com/plugin/6954-kotlin
     //plugins = ['org.jetbrains.kotlin:1.2.50-release-IJ2018.2-1']
