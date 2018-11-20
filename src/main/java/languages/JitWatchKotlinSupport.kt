@@ -55,7 +55,7 @@ class JitWatchKotlinSupport : JitWatchLanguageSupport<KtClassOrObject, KtCallabl
     }
 
     override fun getClassVMName(cls: KtClassOrObject): String? {
-        val descriptor = cls.resolveToDescriptorIfAny() as? ClassDescriptor ?: return null
+        val descriptor = cls.resolveToDescriptorIfAny() ?: return null
         return getClassDescriptorVMName(descriptor)
     }
 
