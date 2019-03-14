@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.state.IncompatibleClassTracker
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
@@ -61,7 +62,7 @@ class JitWatchKotlinSupport : JitWatchLanguageSupport<KtClassOrObject, KtCallabl
 
     private fun getClassDescriptorVMName(descriptor: ClassDescriptor): String {
         val typeMapper = KotlinTypeMapper(BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES,
-                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME, JvmTarget.JVM_1_8, false, true)
+                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME, JvmTarget.JVM_1_8, LanguageVersionSettingsImpl.DEFAULT, true)
         return typeMapper.mapClass(descriptor).internalName.replace('/', '.')
     }
 
@@ -77,7 +78,7 @@ class JitWatchKotlinSupport : JitWatchLanguageSupport<KtClassOrObject, KtCallabl
 
     private fun matchesSignature(descriptor: FunctionDescriptor, memberName: String, paramTypeNames: List<String>, returnTypeName: String): Boolean {
         val typeMapper = KotlinTypeMapper(BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES,
-                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME, JvmTarget.JVM_1_8, false, true)
+                IncompatibleClassTracker.DoNothing, JvmAbi.DEFAULT_MODULE_NAME, JvmTarget.JVM_1_8, LanguageVersionSettingsImpl.DEFAULT, true)
         val signature = typeMapper.mapAsmMethod(descriptor)
 
         val expectedName = if (descriptor is ConstructorDescriptor)
