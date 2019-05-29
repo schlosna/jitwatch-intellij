@@ -43,6 +43,8 @@ intellij {
     version '191-EAP-SNAPSHOT'
     downloadSources false
     plugins 'kotlin'
+    // Don't require recompilation for every idea release
+    updateSinceUntilBuild false
 }
 
 project.afterEvaluate {
