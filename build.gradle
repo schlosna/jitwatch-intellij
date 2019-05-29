@@ -42,6 +42,8 @@ intellij {
     version idea_version
     downloadSources false
     plugins 'kotlin'
+    // Don't require recompilation for every idea release
+    updateSinceUntilBuild false
 
     // https://plugins.jetbrains.com/plugin/6954-kotlin
     plugins = ['org.jetbrains.kotlin:1.3.21-release-IJ2018.3-1']
